@@ -3,7 +3,7 @@ Allows you to use Razorpay payment gateway with the CS Cart Store.
 
 ## Description
 
-This is the Razorpay payment gateway for CS Cart. Allows you to accept credit cards, debit cards, netbanking with the CS Cart store It uses a seamless integration, allowing the customer to pay on your website without being redirected away from your CS Cart website.
+​This is the Razorpay payment gateway plugin for CS Cart. Allows Indian merchants to accept credit cards, debit cards, netbanking with the CS Cart store. It uses a seamless integration, allowing the customer to pay on your website without being redirected away from your CS Cart website.
 
 ## Installation
 1. Ensure you have latest version of CS Cart installed.
