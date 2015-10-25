@@ -16,11 +16,10 @@
         <option value="INR" {if $processor_params.currency == "INR"}selected="selected"{/if}>{__("currency_code_inr")}</option>
     </select>
 </div>
-<div class="control-group">
-    <label class="control-label" for="iframe_mode_{$payment_id}">{__("iframe_mode")}:</label>
-    <div class="controls">
-        <select name="payment_data[processor_params][iframe_mode]" id="iframe_mode_{$payment_id}">
-            <option value="Y" selected="selected">{__("enabled")}</option>
-        </select>
-    </div>
+<div class="form-field">
+    <label for="iframe_mode_{$payment_id}">{__("iframe_mode")}:</label>
+    <select name="payment_data[processor_params][iframe_mode]" id="iframe_mode_{$payment_id}">
+        <option value="Y" selected="selected">{__("enabled")}</option>
+        <option value="N" >{__("disabled")}</option>
+    </select>
 </div>
