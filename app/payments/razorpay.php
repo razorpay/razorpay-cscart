@@ -8,6 +8,11 @@ if ( !defined('AREA') ) { die('Access denied'); }
 // Return from payment
 if (defined('PAYMENT_NOTIFICATION')) {
     if ($mode == 'return' && !empty($_REQUEST['merchant_order_id'])) {
+        if (isset($view) === false)
+        {
+            $view = Registry::get('view');
+        }
+
         $view->assign('order_action', __('placing_order'));
         $view->display('views/orders/components/placing_order.tpl');
         fn_flush();
