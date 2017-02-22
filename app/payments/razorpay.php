@@ -1,14 +1,13 @@
 <?php
 use Tygh\Registry;
-use Razorpay\Api\Api;
+
 include_once ('razorpay/razorpay_common.inc');
-require_once ('razorpay-sdk/Razorpay.php');
 
 if ( !defined('AREA') ) { die('Access denied'); }
 
 // Return from payment
 if (defined('PAYMENT_NOTIFICATION')) {
-    if ($mode == 'return' && !empty($_REQUEST['razorpay_signature'])) {
+    if ($mode == 'return' && !empty($_REQUEST['merchant_order_id'])) {
         if (isset($view) === false)
         {
             $view = Registry::get('view');
@@ -18,26 +17,68 @@ if (defined('PAYMENT_NOTIFICATION')) {
         $view->display('views/orders/components/placing_order.tpl');
         fn_flush();
 
-        $razorpay_signature = $_REQUEST['razorpay_signature'];
+        $merchant_order_id = fn_rzp_place_order($_REQUEST['merchant_order_id']);
         $razorpay_payment_id = $_REQUEST['razorpay_payment_id'];
-        $orderId = fn_rzp_place_order($_SESSION['order_id']);
 
-        if(!empty($razorpay_signature) and !empty($razorpay_payment_id)){
-            if (fn_check_payment_script('razorpay.php', $orderId, $processor_data)) {
+        if(!empty($merchant_order_id) and !empty($razorpay_payment_id)){
+            if (fn_check_payment_script('razorpay.php', $merchant_order_id, $processor_data)) {
                 $key_id = $processor_data['processor_params']['key_id'];
                 $key_secret = $processor_data['processor_params']['key_secret'];
-                $razorpay_order_id = $_SESSION['razorpay_order_id'];
-                $api = new Api($key_id, $key_secret);
-                $payment = $api->payment->fetch($razorpay_payment_id);
-                $signature = hash_hmac('sha256', $razorpay_order_id . '|' . $razorpay_payment_id, $key_secret);
+                $order_info = fn_get_order_info($merchant_order_id);
+                $amount = fn_rzp_adjust_amount($order_info['total'], $processor_data['processor_params']['currency'])*100;
 
-                if (hash_equals($signature , $razorpay_signature)){
-                    $success = true;
+                $pp_response = array();
+                $success = false;
+                $error = "";
+
+                try {
+                    $url = 'https://api.razorpay.com/v1/payments/'.$razorpay_payment_id.'/capture';
+                    $fields_string="amount=$amount";
+
+                    //cURL Request
+                    $ch = curl_init();
+
+                    //set the url, number of POST vars, POST data
+                    curl_setopt($ch,CURLOPT_URL, $url);
+                    curl_setopt($ch,CURLOPT_USERPWD, $key_id . ":" . $key_secret);
+                    curl_setopt($ch,CURLOPT_TIMEOUT, 60);
+                    curl_setopt($ch,CURLOPT_POST, 1);
+                    curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, TRUE);
+
+                    //execute post
+                    $result = curl_exec($ch);
+                    $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+
+                    if($result === false) {
+                        $success = false;
+                        $error = 'Curl error: ' . curl_error($ch);
+                    }
+                    else {
+                        $response_array = json_decode($result, true);
+                        //Check success response
+                        if($http_status === 200 and isset($response_array['error']) === false){
+                            $success = true;    
+                        }
+                        else {
+                            $success = false;
+
+                            if(!empty($response_array['error']['code'])) {
+                                $error = $response_array['error']['code'].":".$response_array['error']['description'];
+                            }
+                            else {
+                                $error = "RAZORPAY_ERROR:Invalid Response <br/>".$result;
+                            }
+                        }
+                    }
+                        
+                    //close connection
+                    curl_close($ch);
                 }
-                else {
-                    $error = 'RAZORPAY_ERROR: Invalid Response';
+                catch (Exception $e) {
                     $success = false;
-                    $error = "PAYMENT_ERROR: Payment failed";
+                    $error ="CSCART_ERROR:Request to Razorpay Failed";
                 }
 
                 if($success === true){
@@ -46,8 +87,8 @@ if (defined('PAYMENT_NOTIFICATION')) {
                     $pp_response['transaction_id'] = @$order;
                     $pp_response['client_id'] = $razorpay_payment_id;
 
-                    fn_finish_payment($orderId, $pp_response);
-                    fn_order_placement_routines('route', $orderId);
+                    fn_finish_payment($merchant_order_id, $pp_response);
+                    fn_order_placement_routines('route', $merchant_order_id);
                 }
                 else {
                     $pp_response['order_status'] = 'O';
@@ -55,15 +96,15 @@ if (defined('PAYMENT_NOTIFICATION')) {
                     $pp_response['transaction_id'] = @$order;
                     $pp_response['client_id'] = $razorpay_payment_id;
 
-                    fn_finish_payment($orderId, $pp_response);
-                    fn_set_notification('E', __('error'), __('text_rzp_failed_order').$orderId);
+                    fn_finish_payment($merchant_order_id, $pp_response);
+                    fn_set_notification('E', __('error'), __('text_rzp_failed_order').$merchant_order_id);
                     fn_order_placement_routines('checkout_redirect');
                 }
 
             }
         }
         else {
-            fn_set_notification('E', __('error'), __('text_rzp_failed_order').$orderId);
+            fn_set_notification('E', __('error'), __('text_rzp_failed_order').$_REQUEST['merchant_order_id']);
             fn_order_placement_routines('checkout_redirect');
         }
     }
@@ -72,17 +113,7 @@ if (defined('PAYMENT_NOTIFICATION')) {
 else {
     $url = fn_url("payment_notification.return?payment=razorpay", AREA, 'current');
     $checkout_url = "https://checkout.razorpay.com/v1/checkout.js";
-    $api = new Api($processor_data['processor_params']['key_id'], $processor_data['processor_params']['key_secret']);
-    $data = array(
-                'receipt' => $order_id,
-                'amount' => fn_rzp_adjust_amount($order_info['total'], $processor_data['processor_params']['currency'])*100,
-                'currency' => $processor_data['processor_params']['currency'],
-    );
-    $data['payment_capture'] = 1;
-    $razorpay_order = $api->order->create($data);
-    $razorpayOrderId = $razorpay_order['id'];
-    $_SESSION['razorpay_order_id'] = $razorpayOrderId;
-    $_SESSION['order_id'] = $order_id;
+
     $fields = array(
         'key' => $processor_data['processor_params']['key_id'],
         'amount' => fn_rzp_adjust_amount($order_info['total'], $processor_data['processor_params']['currency'])*100,
@@ -92,14 +123,12 @@ else {
         'customer_name' => $order_info['b_firstname']." ".$order_info['b_lastname'],
         'customer_email' => $order_info['email'],
         'customer_phone' => $order_info['phone'],
-        'cs_order_id'  => $order_id,
-        'order_id' => $razorpayOrderId,
+        'order_id' => $order_id
     );
-
 
     $html = '<form name="razorpay-form" id="razorpay-form" action="'.$url.'" target="_parent" method="POST">
                 <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
-                <input type="hidden" name="razorpay_signature" id="razorpay_signature"/>
+                <input type="hidden" name="merchant_order_id" id="order_id" value="'.$fields['order_id'].'"/>
             </form>';
     
     $js = '<script>';
@@ -112,7 +141,6 @@ else {
                 'currency': '".$fields['currency']."',
                 'handler': function (transaction) {
                     document.getElementById('razorpay_payment_id').value = transaction.razorpay_payment_id;
-                    document.getElementById('razorpay_signature').value = transaction.razorpay_signature;
                     document.getElementById('razorpay-form').submit();
                 },
                 'prefill': {
@@ -123,7 +151,7 @@ else {
                 notes: {
                     'cs_order_id': '".$fields['order_id']."'
                 },
-                'order_id': '".$fields['order_id']."',
+                netbanking: true
             };
             
             function razorpaySubmit(){                  
