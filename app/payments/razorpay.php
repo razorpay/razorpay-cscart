@@ -36,14 +36,9 @@ else
 
     $api = new Api($processor_data['processor_params']['key_id'], $processor_data['processor_params']['key_secret']);
 
-    $razorpayOrderId = $razorpayPayment->getSessionValue('razorpay_order_id');
+    $razorpayOrder = $api->order->create($data);
 
-    if ($razorpayOrderId == null)
-    {
-        $razorpayOrder = $api->order->create($data);
-
-        $razorpayOrderId = $razorpayOrder['id'];
-    }
+    $razorpayOrderId = $razorpayOrder['id'];
 
     $sessionValues = array(
         'razorpay_order_id' => $razorpayOrderId,
