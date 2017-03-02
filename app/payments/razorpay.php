@@ -34,7 +34,11 @@ else
 
     $data = $razorpayPayment->getOrderData($order_id, $order_info, $processor_data);
 
-    $api = new Api($processor_data['processor_params']['key_id'], $processor_data['processor_params']['key_secret']);
+    $keyId = $processor_data['processor_params']['key_id'];
+
+    $keySecret = $processor_data['processor_params']['key_secret'];
+
+    $api = new Api($keyId, $keySecret);
 
     $razorpayOrder = $api->order->create($data);
 
@@ -48,7 +52,7 @@ else
     $razorpayPayment->setSessionValues($sessionValues);
 
     $fields = array(
-        'key'         => $processor_data['processor_params']['key_id'],
+        'key'         => $keyId,
         'amount'      => fn_rzp_adjust_amount($order_info['total'], $processor_data['processor_params']['currency'])*100,
         'currency'    => $processor_data['processor_params']['currency'],
         'description' => "Order# ".$order_id,
@@ -64,12 +68,20 @@ else
         'order_id' => $razorpayOrderId,
     );
 
-    if (!$fields['amount']) {
+    if (!$fields['amount'])
+    {
         echo __('text_unsupported_currency');
         exit;
     }
 
-echo $razorpayPayment->generateHtmlForm($url, json_encode($fields));
+    if ((defined('IFRAME_MODE') == true) and (empty($_GET['clicked']) == true))
+    {
+        echo $razorpayPayment->getButton();
+    }
+    else
+    {
+        echo $razorpayPayment->generateHtmlForm($url, json_encode($fields));
+    }
 exit;
 }
 

@@ -1,5 +1,7 @@
 <?php
 use Razorpay\Api\Api;
+use Razorpay\Api\Utility;
+use Razorpay\Api\Errors;
 
 class RazorpayPayment
 {
@@ -8,7 +10,7 @@ class RazorpayPayment
         return $_SESSION[$key];
     }
 
-    public function setSessionValues(array $sessionValues)
+    public function setSessionValues($sessionValues)
     {
         foreach($sessionValues as $key => $value)
         {
@@ -22,9 +24,8 @@ class RazorpayPayment
             'receipt' => $orderId,
             'amount' => fn_rzp_adjust_amount($orderInfo['total'], $processorData['processor_params']['currency'])*100,
             'currency' => $processorData['processor_params']['currency'],
+            'payment_capture' => 1
         );
-
-        $data['payment_capture'] = 1;
 
         return $data;
     }
@@ -76,7 +77,7 @@ EOT;
 
         $razorpayOrderId = $_SESSION['razorpay_order_id'];
 
-        if(!empty($razorpaySignature) and !empty($razorpayPaymentId))
+        if ((empty($razorpaySignature) == false) and (empty($razorpayPaymentId) == false))
         {
             if (fn_check_payment_script('razorpay.php', $merchantOrderId, $processorData))
             {
@@ -85,24 +86,27 @@ EOT;
 
                 $keySecret = $processorData['processor_params']['key_secret'];
 
-                $api = new Api($keyId, $keySecret);
-
-                $payment = $api->payment->fetch($razorpayPaymentId);
-
                 $orderInfo = fn_get_order_info($merchantOrderId);
 
                 $amount = fn_rzp_adjust_amount($orderInfo['total'],
                     $processorData['processor_params']['currency'])*100;
-
-                $signature = hash_hmac('sha256', $razorpayOrderId . '|' . $razorpayPaymentId, $keySecret);
                     
-                if (hash_equals($signature , $razorpaySignature))
+                $attributes = array (
+                    'razorpay_signature'  => $razorpaySignature,
+                    'razorpay_order_id'   => $razorpayOrderId,
+                    'razorpay_payment_id' => $razorpayPaymentId
+                );
+
+                $api = new Api($keyId, $keySecret);
+
+                try
                 {
-                    $success = true;
+                    $success = (new Utility())->verifyPaymentSignature($attributes);
                 }
-                else
+                catch (Errors\BadRequestError $e)
                 {
                     $success = false;
+
                     $error = "PAYMENT_ERROR: Payment failed";
                 }
             }
@@ -113,11 +117,11 @@ EOT;
                 $success = false;    
             }
 
-            if($success === true)
+            if ($success === true)
             {
                 $pp_response['order_status'] = 'P';
                 $pp_response['reason_text'] = fn_get_lang_var('text_rzp_success');
-                $pp_response['transaction_id'] = @$order;
+                $pp_response['transaction_id'] = $merchantOrderId;
                 $pp_response['client_id'] = $razorpayPaymentId;
 
                 fn_finish_payment($merchantOrderId, $pp_response);
@@ -127,7 +131,7 @@ EOT;
             {
                 $pp_response['order_status'] = 'O';
                 $pp_response['reason_text'] = fn_get_lang_var('text_rzp_pending').$error;
-                $pp_response['transaction_id'] = @$order;
+                $pp_response['transaction_id'] = $merchantOrderId;
                 $pp_response['client_id'] = $razorpayPaymentId;
 
                 fn_finish_payment($merchantOrderId, $pp_response);
@@ -140,6 +144,24 @@ EOT;
             fn_set_notification('E', __('error'), __('text_rzp_failed_order').$merchantOrderId);
             fn_order_placement_routines('checkout_redirect');
         }
+    }
+
+    public function getButton()
+    {
+       $html = <<<EOT
+
+<button id="mybutton" type="button" onclick="load()"
+    style="background-color:#ff5319;height:22px:width:150px;border: none;
+    color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER</button>
+<script>
+    function load() {
+       location.href = "http://localhost/cscart/index.php?dispatch=checkout.process_payment&clicked=true";
+    }
+</script>
+</body>
+</html>
+EOT;
+        return $html;
     }
 }
 
