@@ -62,7 +62,6 @@ class RazorpayPayment
 EOT;
 
         return $html;
-
     }
 
     public function processRazorpayResponse()
@@ -79,7 +78,6 @@ EOT;
         {
             if (fn_check_payment_script('razorpay.php', $merchantOrderId, $processorData))
             {
-
                 $keyId = $processorData['processor_params']['key_id'];
 
                 $keySecret = $processorData['processor_params']['key_secret'];
@@ -147,7 +145,6 @@ EOT;
     public function getButton()
     {
        $html = <<<EOT
-
 <button id="mybutton" type="button" onclick="load()"
     style="background-color:#ff5319;height:22px:width:150px;border: none;
     color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER</button>
@@ -159,6 +156,7 @@ EOT;
 </body>
 </html>
 EOT;
+
         return $html;
     }
 }
