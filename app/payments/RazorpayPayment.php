@@ -19,9 +19,9 @@ class RazorpayPayment
     public function getOrderData($orderId, $orderInfo, $processorData)
     {
         $data = array(
-            'receipt' => $orderId,
-            'amount' => fn_rzp_adjust_amount($orderInfo['total'], $processorData['processor_params']['currency'])*100,
-            'currency' => $processorData['processor_params']['currency'],
+            'receipt'         => $orderId,
+            'amount'          => fn_rzp_adjust_amount($orderInfo['total'], $processorData['processor_params']['currency'])*100,
+            'currency'        => $processorData['processor_params']['currency'],
             'payment_capture' => 1
         );
 
@@ -66,9 +66,17 @@ EOT;
 
     public function processRazorpayResponse()
     {
-        $razorpaySignature = $_POST['razorpay_signature'];
+        $razorpaySignature = null;
+        if (isset($_POST['razorpay_signature']) === true)
+        {
+            $razorpaySignature = $_POST['razorpay_signature'];
+        }
 
-        $razorpayPaymentId = $_POST['razorpay_payment_id'];
+        $razorpayPaymentId = null;
+        if (isset($_POST['razorpay_payment_id']) === true)
+        {
+            $razorpayPaymentId = $_POST['razorpay_payment_id'];
+        }
 
         $merchantOrderId = fn_rzp_place_order($_SESSION['merchant_order_id']);
 

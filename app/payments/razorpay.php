@@ -59,7 +59,7 @@ else
         'description' => "Order# ".$order_id,
         'name'        => Registry::get('settings.Company.company_name'),
         'prefill'     => array(
-            'name'    => $order_info['b_firstname']." ".$order_info['b_lastname'],
+            'name'    => $order_info['b_firstname'] . " " . $order_info['b_lastname'],
             'email'   => $order_info['email'],
             'contact' => $order_info['phone']
         ),
