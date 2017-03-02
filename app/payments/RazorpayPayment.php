@@ -74,7 +74,7 @@ EOT;
 
         $razorpayOrderId = $_SESSION['razorpay_order_id'];
 
-        if ((empty($razorpaySignature) == false) and (empty($razorpayPaymentId) == false))
+        if ((empty($razorpaySignature) === false) and (empty($razorpayPaymentId) === false))
         {
             if (fn_check_payment_script('razorpay.php', $merchantOrderId, $processorData))
             {

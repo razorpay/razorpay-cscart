@@ -75,7 +75,7 @@ else
         exit;
     }
 
-    if ((defined('IFRAME_MODE') == true) and (empty($_GET['clicked']) == true))
+    if ((defined('IFRAME_MODE') === true) and (empty($_GET['clicked']) === true))
     {
         echo $razorpayPayment->getButton();
     }
