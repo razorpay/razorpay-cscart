@@ -1,7 +1,5 @@
 <?php
 use Razorpay\Api\Api;
-use Razorpay\Api\Utility;
-use Razorpay\Api\Errors;
 
 class RazorpayPayment
 {
@@ -101,9 +99,9 @@ EOT;
 
                 try
                 {
-                    $success = (new Utility())->verifyPaymentSignature($attributes);
+                    $success = $api->utility->verifyPaymentSignature($attributes);
                 }
-                catch (Errors\BadRequestError $e)
+                catch (\Exception $e)
                 {
                     $success = false;
 
