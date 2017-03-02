@@ -43,15 +43,10 @@ class RazorpayPayment
         var rzp1 = new Razorpay(data);
         rzp1.open();
         rzp1.modal.options.backdropClose = false;
-    }    
-            
-    var rzp_interval = setInterval(function(){
-        if (typeof window["Razorpay"] != "undefined")
-        {
-            setTimeout(function(){ razorpaySubmit(); }, 500);
-            clearInterval(rzp_interval);
-        }
-    }, 500);
+    }
+    window.onload = function() {
+        razorpaySubmit();
+    };
 </script>
 <form name="razorpay-form" id="razorpay-form" action=$url target="_parent" method="POST">
     <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
