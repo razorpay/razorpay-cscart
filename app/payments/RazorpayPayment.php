@@ -98,16 +98,9 @@ EOT;
 
                 $api = new Api($keyId, $keySecret);
 
-                try
-                {
-                    $success = $api->utility->verifyPaymentSignature($attributes);
-                }
-                catch (\Exception $e)
-                {
-                    $success = false;
+                $success = $api->utility->verifyPaymentSignature($attributes);
 
-                    $error = "PAYMENT_ERROR: Payment failed";
-                }
+                $error = "PAYMENT_ERROR: Payment failed";
             }
             else
             {

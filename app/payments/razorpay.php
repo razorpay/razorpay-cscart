@@ -41,9 +41,17 @@ else
 
     $api = new Api($keyId, $keySecret);
 
-    $razorpayOrder = $api->order->create($data);
+    $razorpayOrderId = null;
 
-    $razorpayOrderId = $razorpayOrder['id'];
+    try
+    {
+        $razorpayOrder = $api->order->create($data);
+        $razorpayOrderId = $razorpayOrder['id'];
+    }
+    catch (\Exception $e)
+    {
+        echo 'CS Cart Error : ' . $e->getMessage();
+    }
 
     $sessionValues = array(
         'razorpay_order_id' => $razorpayOrderId,
