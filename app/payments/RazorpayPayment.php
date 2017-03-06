@@ -98,9 +98,16 @@ EOT;
 
                 $api = new Api($keyId, $keySecret);
 
-                $success = $api->utility->verifyPaymentSignature($attributes);
-
-                $error = "PAYMENT_ERROR: Payment failed";
+                try
+                {
+                    $api->utility->verifyPaymentSignature($attributes);
+                    $success = true;
+                }
+                catch (\Exception $e)
+                {
+                    $success = false;
+                    $error = "PAYMENT_ERROR: Payment failed";
+                }
             }
             else
             {
@@ -140,13 +147,16 @@ EOT;
 
     public function getButton()
     {
+       $url = fn_url("index.php?dispatch=checkout.process_payment&clicked=true", AREA, 'current');
+
        $html = <<<EOT
 <button id="mybutton" type="button" onclick="load()"
     style="background-color:#ff5319;height:22px:width:150px;border: none;
     color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER</button>
 <script>
     function load() {
-       location.href = "http://localhost/cscart/index.php?dispatch=checkout.process_payment&clicked=true";
+        var destUrl = "$url";
+        location.href = destUrl;
     }
 </script>
 </body>

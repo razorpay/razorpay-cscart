@@ -83,6 +83,7 @@ else
         exit;
     }
 
+    //checks for iframe mode. In iframe mode payment flow goes through another payment button
     if ((defined('IFRAME_MODE') === true) and (empty($_GET['clicked']) === true))
     {
         echo $razorpayPayment->getButton();
