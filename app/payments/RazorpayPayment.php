@@ -150,15 +150,12 @@ EOT;
        $url = fn_url("index.php?dispatch=checkout.process_payment&clicked=true", AREA, 'current');
 
        $html = <<<EOT
-<button id="mybutton" type="button" onclick="load()"
-    style="background-color:#ff5319;height:22px:width:150px;border: none;
-    color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER</button>
-<script>
-    function load() {
-        var destUrl = "$url";
-        location.href = destUrl;
-    }
-</script>
+<a href=$url>
+    <button id="mybutton" type="button" onclick="load()"
+        style="background-color:#ff5319;height:22px:width:150px;border: none;
+        color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER
+    </button>
+</a>
 </body>
 </html>
 EOT;
