@@ -31,6 +31,8 @@ class RazorpayPayment
     public function generateHtmlForm($url, $json)
     {
         $html = <<<EOT
+<!DOCTYPE html>
+<body>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     var data = $json;
@@ -150,6 +152,8 @@ EOT;
        $url = fn_url("index.php?dispatch=checkout.process_payment&clicked=true", AREA, 'current');
 
        $html = <<<EOT
+<!DOCTYPE html>
+<body>
 <a href="$url">
     <button id="mybutton" type="button"
         style="background-color:#ff5319;height:22px:width:150px;border: none;
