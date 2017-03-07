@@ -48,7 +48,7 @@ class RazorpayPayment
         razorpaySubmit();
     };
 </script>
-<form name="razorpay-form" id="razorpay-form" action=$url target="_parent" method="POST">
+<form name="razorpay-form" id="razorpay-form" action="$url" target="_parent" method="POST">
     <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
     <input type="hidden" name="razorpay_signature" id="razorpay_signature"/>
 </form>
@@ -150,8 +150,8 @@ EOT;
        $url = fn_url("index.php?dispatch=checkout.process_payment&clicked=true", AREA, 'current');
 
        $html = <<<EOT
-<a href=$url>
-    <button id="mybutton" type="button" onclick="load()"
+<a href="$url">
+    <button id="mybutton" type="button"
         style="background-color:#ff5319;height:22px:width:150px;border: none;
         color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER
     </button>
