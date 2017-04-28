@@ -41,6 +41,12 @@ class RazorpayPayment
         document.getElementById('razorpay_signature').value = transaction.razorpay_signature;
         document.getElementById('razorpay-form').submit();
     };
+
+    data.modal = {};
+
+    data.modal.ondismiss = function() {
+        document.getElementById('razorpay-form').submit();
+    }
     function razorpaySubmit(){                  
         var rzp1 = new Razorpay(data);
         rzp1.open();

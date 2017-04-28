@@ -11,7 +11,7 @@ if ( !defined('AREA') ) { die('Access denied'); }
 // Return from payment
 if (defined('PAYMENT_NOTIFICATION'))
 {
-    if ($mode == 'return' && !empty($_POST['razorpay_signature'])) {
+    if ($mode == 'return') {
         if (isset($view) === false)
         {
             $view = Registry::get('view');

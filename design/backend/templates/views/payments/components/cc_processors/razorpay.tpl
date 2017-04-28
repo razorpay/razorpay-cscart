@@ -19,7 +19,7 @@
 <div class="form-field">
     <label for="iframe_mode_{$payment_id}">{__("iframe_mode")}:</label>
     <select name="payment_data[processor_params][iframe_mode]" id="iframe_mode_{$payment_id}">
-        <option value="Y" selected="selected">{__("enabled")}</option>
-        <option value="N" >{__("disabled")}</option>
+        <option value="Y" {if $processor_params.iframe_mode == "Y"}selected="selected"{/if}>{__("enabled")}</option>
+        <option value="N" {if $processor_params.iframe_mode == "N"}selected="selected"{/if}>{__("disabled")}</option>
     </select>
 </div>
