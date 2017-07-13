@@ -136,21 +136,42 @@ EOT;
             }
             else
             {
-                $pp_response['order_status'] = 'O';
-                $pp_response['reason_text'] = fn_get_lang_var('text_rzp_pending').$error;
-                $pp_response['transaction_id'] = $merchantOrderId;
-                $pp_response['client_id'] = $razorpayPaymentId;
-
-                fn_finish_payment($merchantOrderId, $pp_response);
-                fn_set_notification('E', __('error'), __('text_rzp_failed_order').$merchantOrderId);
-                fn_order_placement_routines('checkout_redirect');
+                $this->handleFailedPayment($error);
             }
+        }
+        else if (isset($_POST['error']) === true)
+        {
+            $error = $_POST['error'];
+            $message = 'An error occured. Description : ' . $error['description'] . '. Code : ' . $error['code'];
+            if (isset($error['field']) === true)
+            {
+                $message .= 'Field : ' . $error['field'];
+            }
+
+            $this->handleFailedPayment($message);
         }
         else
         {
             fn_set_notification('E', __('error'), __('text_rzp_failed_order').$merchantOrderId);
             fn_order_placement_routines('checkout_redirect');
         }
+    }
+
+    protected function handleFailedPayment($errorMessage)
+    {
+        $merchantOrderId = fn_rzp_place_order($_SESSION['merchant_order_id']);
+
+        $razorpayOrderId = $_SESSION['razorpay_order_id'];
+
+
+        $pp_response['order_status'] = 'O';
+        $pp_response['reason_text'] = fn_get_lang_var('text_rzp_pending').$errorMessage;
+        $pp_response['transaction_id'] = $merchantOrderId;
+        $pp_response['client_id'] = $razorpayPaymentId;
+
+        fn_finish_payment($merchantOrderId, $pp_response);
+        fn_set_notification('E', __('error'), __('text_rzp_failed_order').$merchantOrderId);
+        fn_order_placement_routines('checkout_redirect');
     }
 
     public function getButton()

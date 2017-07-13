@@ -75,6 +75,7 @@ else
             'cs_order_id' => $order_id
         ),
         'order_id' => $razorpayOrderId,
+        'callback_url' => $url
     );
 
     if (!$fields['amount'])
