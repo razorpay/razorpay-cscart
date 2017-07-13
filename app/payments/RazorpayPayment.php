@@ -136,7 +136,7 @@ EOT;
             }
             else
             {
-                $this->handleFailedPayment($error);
+                $this->handleFailedPayment($error, $razorpayPaymentId, $merchantOrderId)
             }
         }
         else if (isset($_POST['error']) === true)
@@ -148,7 +148,7 @@ EOT;
                 $message .= 'Field : ' . $error['field'];
             }
 
-            $this->handleFailedPayment($message);
+            $this->handleFailedPayment($message, $razorpayPaymentId, $merchantOrderId)
         }
         else
         {
@@ -157,13 +157,8 @@ EOT;
         }
     }
 
-    protected function handleFailedPayment($errorMessage)
+    protected function handleFailedPayment($errorMessage, $razorpayPaymentId, $merchantOrderId)
     {
-        $merchantOrderId = fn_rzp_place_order($_SESSION['merchant_order_id']);
-
-        $razorpayOrderId = $_SESSION['razorpay_order_id'];
-
-
         $pp_response['order_status'] = 'O';
         $pp_response['reason_text'] = fn_get_lang_var('text_rzp_pending').$errorMessage;
         $pp_response['transaction_id'] = $merchantOrderId;
