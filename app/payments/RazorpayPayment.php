@@ -47,7 +47,7 @@ class RazorpayPayment
     data.modal.ondismiss = function() {
         document.getElementById('razorpay-form').submit();
     }
-    function razorpaySubmit(){                  
+    function razorpaySubmit(){
         var rzp1 = new Razorpay(data);
         rzp1.open();
         rzp1.modal.options.backdropClose = false;
@@ -97,7 +97,7 @@ EOT;
 
                 $amount = fn_rzp_adjust_amount($orderInfo['total'],
                     $processorData['processor_params']['currency'])*100;
-                    
+
                 $attributes = array (
                     'razorpay_signature'  => $razorpaySignature,
                     'razorpay_order_id'   => $razorpayOrderId,
@@ -121,7 +121,7 @@ EOT;
             {
                 $error = 'RAZORPAY_ERROR: Invalid Response';
 
-                $success = false;    
+                $success = false;
             }
 
             if ($success === true)
@@ -136,7 +136,7 @@ EOT;
             }
             else
             {
-                $this->handleFailedPayment($error, $razorpayPaymentId, $merchantOrderId)
+                $this->handleFailedPayment($error, $razorpayPaymentId, $merchantOrderId);
             }
         }
         else if (isset($_POST['error']) === true)
@@ -148,7 +148,7 @@ EOT;
                 $message .= 'Field : ' . $error['field'];
             }
 
-            $this->handleFailedPayment($message, $razorpayPaymentId, $merchantOrderId)
+            $this->handleFailedPayment($message, $razorpayPaymentId, $merchantOrderId);
         }
         else
         {
