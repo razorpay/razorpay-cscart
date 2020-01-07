@@ -3,6 +3,9 @@ use Razorpay\Api\Api;
 
 class RazorpayPayment
 {
+    //Define version of plugin
+    const VERSION = '1.1.0';
+
     public function getSessionValue($key)
     {
         return $_SESSION[$key];

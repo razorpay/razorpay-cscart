@@ -75,7 +75,12 @@ else
             'cs_order_id' => $order_id
         ),
         'order_id' => $razorpayOrderId,
-        'callback_url' => $url
+        'callback_url' => $url,
+        '_' => array(
+          'integration' => 'cscart',
+          'integration_version' => RazorpayPayment::VERSION,
+          'integration_parent_version' => PRODUCT_VERSION
+        )
     );
 
     if (!$fields['amount'])
