@@ -72,7 +72,8 @@ else
             'contact' => $order_info['phone']
         ),
         'notes'       => array(
-            'cs_order_id' => $order_id
+            'cs_reference_id' => $order_id,
+            'cs_order_id' => '',
         ),
         'order_id' => $razorpayOrderId,
         'callback_url' => $url,

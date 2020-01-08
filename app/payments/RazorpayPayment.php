@@ -135,6 +135,25 @@ EOT;
                 $pp_response['client_id'] = $razorpayPaymentId;
 
                 fn_finish_payment($merchantOrderId, $pp_response);
+
+                //update real orderId in rzp dashboard
+                try
+                {
+                    $api->payment->fetch($razorpayPaymentId.'2')->edit(
+                        array(
+                            'notes' => array(
+                                'cs_order_id' => $merchantOrderId,
+                                'cs_reference_id' => $_SESSION['merchant_order_id']
+                            )
+                        )
+                    );
+                }
+                catch (\Exception $e)
+                {
+                    $error = "PAYMENT_ERROR: Unable to update orderID in Razorpay Dashboard for OrderID: ";
+                    fn_set_notification('E', __('error'), $error.$merchantOrderId);
+                }
+
                 fn_order_placement_routines('route', $merchantOrderId);
             }
             else
