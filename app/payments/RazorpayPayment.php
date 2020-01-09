@@ -139,7 +139,7 @@ EOT;
                 //update real orderId in rzp dashboard
                 try
                 {
-                    $api->payment->fetch($razorpayPaymentId.'2')->edit(
+                    $api->payment->fetch($razorpayPaymentId)->edit(
                         array(
                             'notes' => array(
                                 'cs_order_id' => $merchantOrderId,
