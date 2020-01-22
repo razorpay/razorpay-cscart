@@ -72,10 +72,16 @@ else
             'contact' => $order_info['phone']
         ),
         'notes'       => array(
-            'cs_order_id' => $order_id
+            'cs_reference_id' => $order_id,
+            'cs_order_id' => '',
         ),
         'order_id' => $razorpayOrderId,
-        'callback_url' => $url
+        'callback_url' => $url,
+        '_' => array(
+          'integration' => 'cscart',
+          'integration_version' => RazorpayPayment::VERSION,
+          'integration_parent_version' => PRODUCT_VERSION
+        )
     );
 
     if (!$fields['amount'])
