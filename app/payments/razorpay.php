@@ -3,10 +3,23 @@ use Tygh\Registry;
 use Razorpay\Api\Api;
 
 include_once ('razorpay/razorpay_common.inc');
-require_once ('razorpay-sdk/Razorpay.php');
-require_once('RazorpayPayment.php');
+include_once ('razorpay/razorpay-webhook.php');
+require_once ('razorpay/razorpay-sdk/Razorpay.php');
+require_once ('razorpay/RazorpayPayment.php');
 
 if ( !defined('AREA') ) { die('Access denied'); }
+
+
+// Webhook flow s2s
+if ($_SERVER['REQUEST_METHOD'] == 'POST')
+{
+    if ($mode == 'rzp_webhook')
+    {
+        $razorpayWebhook = new RZP_Webhook();
+        $razorpayWebhook->process();
+        exit;
+    }
+}
 
 // Return from payment
 if (defined('PAYMENT_NOTIFICATION'))
@@ -31,65 +44,6 @@ else
 {
     $razorpayPayment = new RazorpayPayment();
 
-    $url = fn_url("payment_notification.return?payment=razorpay", AREA, 'current');
-
-    $data = $razorpayPayment->getOrderData($order_id, $order_info, $processor_data);
-
-    $keyId = $processor_data['processor_params']['key_id'];
-
-    $keySecret = $processor_data['processor_params']['key_secret'];
-
-    $api = new Api($keyId, $keySecret);
-
-    $razorpayOrderId = null;
-
-    try
-    {
-        $razorpayOrder = $api->order->create($data);
-        $razorpayOrderId = $razorpayOrder['id'];
-    }
-    catch (\Exception $e)
-    {
-        echo 'CS Cart Error : ' . $e->getMessage();
-    }
-
-    $sessionValues = array(
-        'razorpay_order_id' => $razorpayOrderId,
-        'merchant_order_id' => $order_id
-    );
-
-    $razorpayPayment->setSessionValues($sessionValues);
-
-    $fields = array(
-        'key'         => $keyId,
-        'amount'      => fn_rzp_adjust_amount($order_info['total'], $processor_data['processor_params']['currency'])*100,
-        'currency'    => $processor_data['processor_params']['currency'],
-        'description' => "Order# ".$order_id,
-        'name'        => Registry::get('settings.Company.company_name'),
-        'prefill'     => array(
-            'name'    => $order_info['b_firstname'] . " " . $order_info['b_lastname'],
-            'email'   => $order_info['email'],
-            'contact' => $order_info['phone']
-        ),
-        'notes'       => array(
-            'cs_reference_id' => $order_id,
-            'cs_order_id' => '',
-        ),
-        'order_id' => $razorpayOrderId,
-        'callback_url' => $url,
-        '_' => array(
-          'integration' => 'cscart',
-          'integration_version' => RazorpayPayment::VERSION,
-          'integration_parent_version' => PRODUCT_VERSION
-        )
-    );
-
-    if (!$fields['amount'])
-    {
-        echo __('text_unsupported_currency');
-        exit;
-    }
-
     //checks for iframe mode. In iframe mode payment flow goes through another payment button
     if ((defined('IFRAME_MODE') === true) and (empty($_GET['clicked']) === true))
     {
@@ -97,6 +51,69 @@ else
     }
     else
     {
+        $url = fn_url("payment_notification.return?payment=razorpay", AREA, 'current');
+
+        $data = $razorpayPayment->getOrderData($order_id, $order_info, $processor_data);
+
+        $keyId = $processor_data['processor_params']['key_id'];
+
+        $keySecret = $processor_data['processor_params']['key_secret'];
+
+        $isIframeEnabled = $processor_data['processor_params']['iframe_mode'];
+
+        $api = new Api($keyId, $keySecret);
+
+        $razorpayOrderId = null;
+
+        try
+        {
+            $razorpayOrder = $api->order->create($data);
+            $razorpayOrderId = $razorpayOrder['id'];
+        }
+        catch (\Exception $e)
+        {
+            echo 'CS Cart Error : ' . $e->getMessage();
+        }
+
+        if($isIframeEnabled === 'Y'){
+            $order_id = fn_rzp_place_order($order_id);
+        }
+
+        $sessionValues = array(
+            'razorpay_order_id' => $razorpayOrderId,
+            'merchant_order_id' => $order_id
+        );
+
+        $razorpayPayment->setSessionValues($sessionValues);
+
+        $fields = array(
+            'key'         => $keyId,
+            'amount'      => fn_rzp_adjust_amount($order_info['total'], $processor_data['processor_params']['currency'])*100,
+            'currency'    => $processor_data['processor_params']['currency'],
+            'description' => "Order# ".$order_id,
+            'name'        => Registry::get('settings.Company.company_name'),
+            'prefill'     => array(
+                'name'    => $order_info['b_firstname'] . " " . $order_info['b_lastname'],
+                'email'   => $order_info['email'],
+                'contact' => $order_info['phone']
+            ),
+            'notes'       => array(
+                'cs_order_id' => $order_id,
+            ),
+            'order_id' => $razorpayOrderId,
+            'callback_url' => $url,
+            '_' => array(
+              'integration' => 'cscart',
+              'integration_version' => RazorpayPayment::VERSION,
+              'integration_parent_version' => PRODUCT_VERSION
+            )
+        );
+
+    if (!$fields['amount'])
+    {
+        echo __('text_unsupported_currency');
+        exit;
+    }
         echo $razorpayPayment->generateHtmlForm($url, json_encode($fields));
     }
 exit;
