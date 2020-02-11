@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__.'/razorpay-sdk/Razorpay.php';
-include_once ('razorpay/razorpay_common.inc');
+require_once __DIR__ . '/razorpay-sdk/Razorpay.php';
+require_once __DIR__ . '/razorpay_common.inc';
 
 use Razorpay\Api\Api;
 use Razorpay\Api\Errors;
