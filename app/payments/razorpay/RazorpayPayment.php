@@ -4,7 +4,7 @@ use Razorpay\Api\Api;
 class RazorpayPayment
 {
     //Define version of plugin
-    const VERSION = '1.1.0';
+    const VERSION = '1.2.0';
 
     public function getSessionValue($key)
     {
@@ -84,9 +84,9 @@ EOT;
             $razorpayPaymentId = $_POST['razorpay_payment_id'];
         }
 
-        $merchantOrderId = fn_rzp_place_order($_SESSION['merchant_order_id']);
-
         $razorpayOrderId = $_SESSION['razorpay_order_id'];
+
+        $merchantOrderId = $_SESSION['merchant_order_id'];
 
         if ((empty($razorpaySignature) === false) and (empty($razorpayPaymentId) === false))
         {
@@ -136,25 +136,7 @@ EOT;
 
                 fn_finish_payment($merchantOrderId, $pp_response);
 
-                //update real orderId in rzp dashboard
-                try
-                {
-                    $api->payment->fetch($razorpayPaymentId)->edit(
-                        array(
-                            'notes' => array(
-                                'cs_order_id' => $merchantOrderId,
-                                'cs_reference_id' => $_SESSION['merchant_order_id']
-                            )
-                        )
-                    );
-                }
-                catch (\Exception $e)
-                {
-                    $error = "PAYMENT_ERROR: Unable to update orderID in Razorpay Dashboard for OrderID: ";
-                    fn_set_notification('E', __('error'), $error.$merchantOrderId);
-                }
-
-                fn_order_placement_routines('route', $merchantOrderId);
+                fn_order_placement_routines('route', $merchantOrderId);                
             }
             else
             {
@@ -178,6 +160,7 @@ EOT;
             fn_order_placement_routines('checkout_redirect');
         }
     }
+
 
     protected function handleFailedPayment($errorMessage, $razorpayPaymentId, $merchantOrderId)
     {
