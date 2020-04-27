@@ -4,7 +4,7 @@ use Razorpay\Api\Api;
 class RazorpayPayment
 {
     //Define version of plugin
-    const VERSION = '1.2.0';
+    const VERSION = '1.3.0';
 
     public function getSessionValue($key)
     {
@@ -31,41 +31,78 @@ class RazorpayPayment
         return $data;
     }
 
-    public function generateHtmlForm($url, $json)
+    public function generateHtmlForm($url, $fields)
     {
-        $html = <<<EOT
-<!DOCTYPE html>
-<body>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-    var data = $json;
-    data.handler = function (transaction) {
-        document.getElementById('razorpay_payment_id').value = transaction.razorpay_payment_id;
-        document.getElementById('razorpay_signature').value = transaction.razorpay_signature;
-        document.getElementById('razorpay-form').submit();
-    };
+        if($fields['is_hosted'])
+        {
+            $html = '
+                <!DOCTYPE html>
+                <body>
+                    <form action="'. $fields['api_url'] .'checkout/embedded" method="post" name="embedded_checkout_form" id="embedded_checkout_form">
+                        <input type="hidden" name="key_id" value="'. $fields['key'] .'">
+                        <input type="hidden" name="order_id" value="'. $fields['order_id'] .'">
+                        <input type="hidden" name="image" value="">
+                        <input type="hidden" name="name" value="'. $fields['name'] .'">
+                        <input type="hidden" name="description" value="'. $fields['description'] .'">
 
-    data.modal = {};
+                        <input type="hidden" name="prefill[name]" value="'. $fields['prefill']['name'] .'">
+                        <input type="hidden" name="prefill[contact]" value="'. $fields['prefill']['contact'] .'">
+                        <input type="hidden" name="prefill[email]" value="'. $fields['prefill']['email'] .'">
 
-    data.modal.ondismiss = function() {
-        document.getElementById('razorpay-form').submit();
-    }
-    function razorpaySubmit(){
-        var rzp1 = new Razorpay(data);
-        rzp1.open();
-        rzp1.modal.options.backdropClose = false;
-    }
-    window.onload = function() {
-        razorpaySubmit();
-    };
-</script>
-<form name="razorpay-form" id="razorpay-form" action="$url" target="_parent" method="POST">
-    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
-    <input type="hidden" name="razorpay_signature" id="razorpay_signature"/>
-</form>
-</body>
-</html>
-EOT;
+                        <input type="hidden" name="notes[opencart_order_id]" value="'. $fields['notes']['cs_order_id'] .'">
+
+                        <input type="hidden" name="_[integration]" value="cscart">
+                        <input type="hidden" name="_[integration_version]" value="'. $fields['_']['integration_version'] .'">
+                        <input type="hidden" name="_[integration_parent_version]" value="'. $fields['_']['integration_parent_version'] .'">
+
+                        <input type="hidden" name="callback_url" value="'. $fields['callback_url'] .'">
+                        <input type="hidden" name="cancel_url" value="'. $fields['cancel_url'] .'">
+                    </form>
+                    <script type="text/javascript">
+                        document.getElementById("embedded_checkout_form").submit();
+                    </script>
+                  </body>
+                </html>
+                ';
+        }
+        else
+        {
+            $json = json_encode($fields);
+
+            $html = <<<EOT
+                    <!DOCTYPE html>
+                    <body>
+                    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                    <script>
+                        var data = $json;
+                        data.handler = function (transaction) {
+                            document.getElementById('razorpay_payment_id').value = transaction.razorpay_payment_id;
+                            document.getElementById('razorpay_signature').value = transaction.razorpay_signature;
+                            document.getElementById('razorpay-form').submit();
+                        };
+
+                        data.modal = {};
+
+                        data.modal.ondismiss = function() {
+                            document.getElementById('razorpay-form').submit();
+                        }
+                        function razorpaySubmit(){
+                            var rzp1 = new Razorpay(data);
+                            rzp1.open();
+                            rzp1.modal.options.backdropClose = false;
+                        }
+                        window.onload = function() {
+                            razorpaySubmit();
+                        };
+                    </script>
+                    <form name="razorpay-form" id="razorpay-form" action="$url" target="_parent" method="POST">
+                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
+                        <input type="hidden" name="razorpay_signature" id="razorpay_signature"/>
+                    </form>
+                    </body>
+                    </html>
+                    EOT;
+        }
 
         return $html;
     }

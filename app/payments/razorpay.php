@@ -109,14 +109,53 @@ else
             )
         );
 
-    if (!$fields['amount'])
+        if (!$fields['amount'])
+        {
+            echo __('text_unsupported_currency');
+            exit;
+        }
+        if((defined('IFRAME_MODE') === false))
+        {
+            $merchantPreferences    = getMerchantPreferences($api);
+            $fields['api_url']      = $api->getBaseUrl();
+            $fields['is_hosted']    = $merchantPreferences['is_hosted'];
+            $fields['image']        = $merchantPreferences['image'];
+            $fields['callback_url'] = $url;
+            $fields['cancel_url']   = fn_url('checkout.checkout');;
+        }
+
+        echo $razorpayPayment->generateHtmlForm($url, $fields);
+    }
+
+    exit;
+}
+
+function getMerchantPreferences($api)
+{
+    try
     {
-        echo __('text_unsupported_currency');
-        exit;
+        $response = Requests::get($api->getBaseUrl() . 'preferences?key_id=34' . $api->getKey());
     }
-        echo $razorpayPayment->generateHtmlForm($url, json_encode($fields));
+    catch (Exception $e)
+    {
+        echo 'CS Cart Error : ' . $e->getMessage();
     }
-exit;
+
+    $preferences = [];
+    $preferences['is_hosted'] = false;
+
+    if($response->status_code === 200)
+    {
+        $jsonResponse = json_decode($response->body, true);
+
+        $preferences['image'] = $jsonResponse['options']['image'];
+        if(empty($jsonResponse['options']['redirect']) === false)
+        {
+            $preferences['is_hosted'] = $jsonResponse['options']['redirect'];
+        }
+    }
+
+    return $preferences;
 }
 
 ?>
