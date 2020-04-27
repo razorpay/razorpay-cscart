@@ -134,7 +134,7 @@ function getMerchantPreferences($api)
 {
     try
     {
-        $response = Requests::get($api->getBaseUrl() . 'preferences?key_id=34' . $api->getKey());
+        $response = Requests::get($api->getBaseUrl() . 'preferences?key_id=' . $api->getKey());
     }
     catch (Exception $e)
     {
