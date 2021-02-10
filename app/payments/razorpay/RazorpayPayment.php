@@ -69,8 +69,7 @@ class RazorpayPayment
         {
             $json = json_encode($fields);
 
-            $html = '
-                    <!DOCTYPE html>
+            $html = '<!DOCTYPE html>
                     <body>
                     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                     <script>
@@ -100,8 +99,7 @@ class RazorpayPayment
                         <input type="hidden" name="razorpay_signature" id="razorpay_signature"/>
                     </form>
                     </body>
-                    </html>
-                    ';
+                    </html>';
         }
 
         return $html;
