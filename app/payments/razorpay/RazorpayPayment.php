@@ -4,7 +4,7 @@ use Razorpay\Api\Api;
 class RazorpayPayment
 {
     //Define version of plugin
-    const VERSION = '1.3.0';
+    const VERSION = '1.3.1';
 
     public function getSessionValue($key)
     {
@@ -69,22 +69,22 @@ class RazorpayPayment
         {
             $json = json_encode($fields);
 
-            $html = <<<EOT
+            $html = '
                     <!DOCTYPE html>
                     <body>
                     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
                     <script>
-                        var data = $json;
+                        var data = ' . $json . ';
                         data.handler = function (transaction) {
-                            document.getElementById('razorpay_payment_id').value = transaction.razorpay_payment_id;
-                            document.getElementById('razorpay_signature').value = transaction.razorpay_signature;
-                            document.getElementById('razorpay-form').submit();
+                            document.getElementById("razorpay_payment_id").value = transaction.razorpay_payment_id;
+                            document.getElementById("razorpay_signature").value = transaction.razorpay_signature;
+                            document.getElementById("razorpay-form").submit();
                         };
 
                         data.modal = {};
 
                         data.modal.ondismiss = function() {
-                            document.getElementById('razorpay-form').submit();
+                            document.getElementById("razorpay-form").submit();
                         }
                         function razorpaySubmit(){
                             var rzp1 = new Razorpay(data);
@@ -95,13 +95,13 @@ class RazorpayPayment
                             razorpaySubmit();
                         };
                     </script>
-                    <form name="razorpay-form" id="razorpay-form" action="$url" target="_parent" method="POST">
+                    <form name="razorpay-form" id="razorpay-form" action="' . $url . '" target="_parent" method="POST">
                         <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
                         <input type="hidden" name="razorpay_signature" id="razorpay_signature"/>
                     </form>
                     </body>
                     </html>
-                    EOT;
+                    ';
         }
 
         return $html;
@@ -215,18 +215,16 @@ class RazorpayPayment
     {
        $url = fn_url("index.php?dispatch=checkout.process_payment&clicked=true", AREA, 'current');
 
-       $html = <<<EOT
-<!DOCTYPE html>
-<body>
-<a href="$url">
-    <button id="mybutton" type="button"
-        style="background-color:#ff5319;height:22px:width:150px;border: none;
-        color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER
-    </button>
-</a>
-</body>
-</html>
-EOT;
+       $html = '<!DOCTYPE html>
+                <body>
+                <a href="' . $url . '">
+                    <button id="mybutton" type="button"
+                        style="background-color:#ff5319;height:22px:width:150px;border: none;
+                        color: white;font-size: 16px;padding: 6px 7px;">SUBMIT MY ORDER
+                    </button>
+                </a>
+                </body>
+                </html>';
 
         return $html;
     }
