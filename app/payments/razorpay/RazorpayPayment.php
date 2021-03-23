@@ -33,7 +33,7 @@ class RazorpayPayment
 
     public function generateHtmlForm($url, $fields)
     {
-        if($fields['is_hosted'])
+        if((isset($fields['is_hosted']) === true) and ($fields['is_hosted']))
         {
             $html = '
                 <!DOCTYPE html>
