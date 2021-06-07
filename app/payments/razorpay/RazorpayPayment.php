@@ -1,6 +1,12 @@
 <?php
 use Razorpay\Api\Api;
 
+session_start(); 
+
+// Extend cookie life time by an amount of your linking
+$cookieLifetime = 3600; // One hour in seconds
+setcookie(session_name(), session_id(), time()+$cookieLifetime);
+
 class RazorpayPayment
 {
     //Define version of plugin
