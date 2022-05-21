@@ -24,10 +24,17 @@
 </div>
 
 <div class="form-field">
+    <label for="iframe_mode_{$payment_id}">{__("iframe_mode")}:</label>
+    <select name="payment_data[processor_params][iframe_mode]" id="iframe_mode_{$payment_id}">
+        <option value="Y" {if $processor_params.iframe_mode == "Y"}selected="selected"{/if}>{__("enabled")}</option>
+        <option value="N" {if $processor_params.iframe_mode == "N"}selected="selected"{/if}>{__("disabled")}</option>
+    </select>
+</div>
+
+<div class="form-field">
     <label for="enabled_webhook">{__("rzp_enabled_webhook")}:</label>
     <select name="payment_data[processor_params][enabled_webhook]" id="enabled_webhook">
-        <option value="off" {if $processor_params.enabled_webhook == "off"}selected="selected"{/if}>{__("no")}</option>
-        <option value="on" {if $processor_params.enabled_webhook == "on"}selected="selected"{/if}>{__("yes")}</option>
+        <option value="on" selected="selected">on</option>
      </select>
      <div style="font-weight: bold; font-style: italic;">If set to Yes, please set the webhook secret below as well</div>
 </div>
@@ -56,9 +63,40 @@
 </div>
 
 <div class="form-field">
-    <label for="iframe_mode_{$payment_id}">{__("iframe_mode")}:</label>
-    <select name="payment_data[processor_params][iframe_mode]" id="iframe_mode_{$payment_id}">
-        <option value="Y" {if $processor_params.iframe_mode == "Y"}selected="selected"{/if}>{__("enabled")}</option>
-        <option value="N" {if $processor_params.iframe_mode == "N"}selected="selected"{/if}>{__("disabled")}</option>
-    </select>
+    <label for="webhook_flag">:</label>
+    <input type="text" name="payment_data[processor_params][webhook_flag]" id="webhook_flag" value="{$processor_params.webhook_flag}" class="input-text" />
+    <div style="font-weight: bold; font-style: italic;">This field has to match with the same secret, set in <a href="https://dashboard.razorpay.com/#/app/webhooks">https://dashboard.razorpay.com/#/app/webhooks</a></div>
 </div>
+<script type='text/javascript'>
+
+$('input[type="submit"]').click(function( event ) {
+   
+  // event.preventDefault();
+   $dt = Date.now();
+   $('#webhook_flag').val($dt);
+   $secret = Math.random().toString(36).slice(2, 7);
+   $('#webhook_secret').val($secret);
+   $keyid = $('#key_id').val();
+   $keysecret = $('#key_secret').val();
+   $webhookurl  = $('#webhook_url').val();
+    
+   $.ajax({
+       url: "http://localhost/cscart/admin.php?dispatch=razorpay.manage", 
+       type: 'GET',
+        data: { 
+            keyid: $keyid, 
+            keysecret : $keysecret,
+            webhook_url : $webhookurl,
+            secret : $secret
+            }, 
+        async : false,     
+        success: function(result){
+            //alert(result);
+        }});  
+});
+</script>
+
+
+
+
+
