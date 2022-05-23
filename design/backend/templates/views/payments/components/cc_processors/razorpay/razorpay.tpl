@@ -79,7 +79,7 @@ $('input[type="submit"]').click(function( event ) {
    $webhookurl  = $('#webhook_url').val();
     
    $.ajax({
-       url: "http://localhost/cscart/admin.php?dispatch=razorpay.manage", 
+       url: "/cscart/admin.php?dispatch=razorpay.manage", 
        type: 'GET',
         data: { 
             keyid: $keyid, 
