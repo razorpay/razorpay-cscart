@@ -43,19 +43,29 @@ if (defined('PAYMENT_NOTIFICATION'))
 else
 {
     $razorpayPayment = new RazorpayPayment();
-
+    //check for webhook last updated
+    $WebhookFlag = $processor_data['processor_params']['webhook_flag'];
+    if (empty($WebhookFlag) === true)
+    {
+        autoEnableWebhook($processor_data);
+    }
+    else
+    {
+        if ($WebhookFlag + 86400 < time())
+        {
+            autoEnableWebhook($processor_data);
+        }
+    }
     //checks for iframe mode. In iframe mode payment flow goes through another payment button
     if ((defined('IFRAME_MODE') === true) and (empty($_GET['clicked']) === true))
     {
         echo $razorpayPayment->getButton();
     }
     else
-    {
+    {  
         $url = fn_url("payment_notification.return?payment=razorpay", AREA, 'current');
 
         $data = $razorpayPayment->getOrderData($order_id, $order_info, $processor_data);
-
-        autoEnableWebhook($processor_data);
         
         $keyId = $processor_data['processor_params']['key_id'];
 
@@ -164,19 +174,17 @@ function autoEnableWebhook($processor_data)
 {
    $keyId = $processor_data['processor_params']['key_id'];
    $keySecret = $processor_data['processor_params']['key_secret'];
-   $webhookUrl = 'https://369f-2405-201-c022-134-7153-2b0b-6813-7f7b.ngrok.io/cscart/index.php?dispatch=payment_notification.rzp_webhook&payment=razorpay'; 
+   $webhookUrl = $processor_data['processor_params']['webhook_url'];
    $webhookSecret = $processor_data['processor_params']['webhook_secret'];
    $webhookExist = false;
    $enabled = true;
    
   
    $supportedWebhookEvents  = array(
-      'payment.authorized',
-      
+      'payment.authorized'
   );
   $defaultWebhookEvents = array(
-      'payment.authorized' => true,
-      'payment.failed' => true
+      'payment.authorized' => true
   );
   $domain = parse_url($webhookUrl, PHP_URL_HOST);
   $domain_ip = gethostbyname($domain);
@@ -230,5 +238,6 @@ function autoEnableWebhook($processor_data)
       }
   
 }
+
 
 ?>
