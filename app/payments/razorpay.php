@@ -1,5 +1,6 @@
 <?php
 use Tygh\Registry;
+use Tygh\Settings;
 use Razorpay\Api\Api;
 
 include_once ('razorpay/razorpay_common.inc');
@@ -45,15 +46,24 @@ else
     $razorpayPayment = new RazorpayPayment();
     //check for webhook last updated
     $WebhookFlag = $processor_data['processor_params']['webhook_flag'];
+    $processorId = (int)$processor_data['processor_id'];
+    $paymentId = db_get_row('SELECT payment_id FROM ?:payments WHERE processor_id=?i', $processorId)['payment_id'];
+    
     if (empty($WebhookFlag) === true)
     {
         autoEnableWebhook($processor_data);
+        $processor_data['processor_params']['webhook_flag'] = strval(time());
+
+        db_query('UPDATE ?:payments SET processor_params=?s WHERE payment_id = ?i', serialize($processor_data['processor_params']), $paymentId);
     }
     else
     {
         if ($WebhookFlag + 86400 < time())
         {
             autoEnableWebhook($processor_data);
+            $processor_data['processor_params']['webhook_flag'] = strval(time());
+            
+            db_query('UPDATE ?:payments SET processor_params=?s WHERE payment_id = ?i', serialize($processor_data['processor_params']), $paymentId);
         }
     }
     //checks for iframe mode. In iframe mode payment flow goes through another payment button
@@ -238,6 +248,5 @@ function autoEnableWebhook($processor_data)
       }
   
 }
-
 
 ?>
