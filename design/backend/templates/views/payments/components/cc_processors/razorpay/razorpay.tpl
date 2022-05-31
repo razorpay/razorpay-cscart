@@ -74,19 +74,10 @@ $('input[type="submit"]').click(function( event ) {
    $('#webhook_flag').val($dt);
    $secret = Math.random().toString(36).slice(2, 7);
    $('#webhook_secret').val($secret);
-   $keyid = $('#key_id').val();
-   $keysecret = $('#key_secret').val();
-   $webhookurl  = $('#webhook_url').val();
 
    $.ajax({
-       url: '/cscart/admin.php?dispatch=razorpay.manage', 
-       type: 'GET',
-        data: { 
-            keyid: $keyid, 
-            keysecret : $keysecret,
-            webhook_url : $webhookurl,
-            secret : $secret
-            }, 
+        url: '/cscart/admin.php?dispatch=razorpay.manage', 
+        type: 'GET',
         async : false,     
         success: function(result){
             console.log(result);

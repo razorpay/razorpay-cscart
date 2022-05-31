@@ -8,10 +8,12 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
 {
    if($_SERVER['REQUEST_METHOD'] === 'GET')
    {
-      $keyId = $_REQUEST['keyid'];
-      $keySecret = $_REQUEST['keysecret'];
-      $webhookUrl =  $_REQUEST['webhook_url'];
-      $webhookSecret = $_REQUEST['secret'];
+      $processorParamsRzp = fetchProcessorParams();
+
+      $keyId = $processorParamsRzp['key_id'];
+      $keySecret = $processorParamsRzp['key_secret'];
+      $webhookUrl =  $processorParamsRzp['webhook_url'];
+      $webhookSecret = $processorParamsRzp['webhook_secret'];
       $webhookExist = false;
       $enabled = true;
       
@@ -76,4 +78,20 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
       }
    
 }
+
+function fetchProcessorParams(){
+   $processorId = db_get_row('SELECT * FROM ?:payment_processors WHERE processor LIKE ?l OR processor LIKE ?l', "razorpay", "Razorpay")['processor_id'];
+   $processorParams = db_get_array('SELECT * FROM ?:payments');
+
+   $processorParamsRzp = "";
+   foreach($processorParams as $key=>$row)
+   {
+       if ($row['processor_id'] === $processorId)
+       {
+           $processorParamsRzp = unserialize($row['processor_params']);
+       }
+   }
+   return $processorParamsRzp;
+}
+
 ?>
