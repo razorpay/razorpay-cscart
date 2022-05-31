@@ -31,7 +31,7 @@
     </select>
 </div>
 
-<div class="form-field">
+<div class="form-field" style="display: none;">
     <label for="enabled_webhook">{__("rzp_enabled_webhook")}:</label>
     <select name="payment_data[processor_params][enabled_webhook]" id="enabled_webhook">
         <option value="on" selected="selected">on</option>
@@ -39,7 +39,7 @@
      <div style="font-weight: bold; font-style: italic;">If set to Yes, please set the webhook secret below as well</div>
 </div>
 
-<div class="form-field">
+<div class="form-field" style="display: none;">
     <label for="webhook_url">{__("rzp_webhook_url")}:</label>
     <input type="text" readonly name="payment_data[processor_params][webhook_url]" id="webhook_url" value="{$webhook_url}" class="input-text" style="font-weight: bold;"/>
     <span class='copy-to-clipboard' style='background-color: #337ab7; color: white; border: none;cursor: pointer;margin:4px; padding: 2px 4px; text-decoration: none;'>Copy</span>
@@ -57,7 +57,7 @@
     </script>
 <div>
 
-<div class="form-field">
+<div class="form-field" style="display: none;">
     <input type="text" name="payment_data[processor_params][webhook_secret]" id="webhook_secret" value="{$processor_params.webhook_secret}" class="input-text" />
     <div style="font-weight: bold; font-style: italic;">This field has to match with the same secret, set in <a href="https://dashboard.razorpay.com/#/app/webhooks">https://dashboard.razorpay.com/#/app/webhooks</a></div>
 </div>
@@ -72,20 +72,33 @@ $('input[type="submit"]').click(function( event ) {
    
    $dt = Math.floor(Date.now() / 1000);
    $('#webhook_flag').val($dt);
-   $secret = Math.random().toString(36).slice(2, 7);
+   $secret = randomString();
    $('#webhook_secret').val($secret);
 
    $.ajax({
         url: '/cscart/admin.php?dispatch=razorpay.manage', 
         type: 'GET',
-        async : false,     
+        async : false,
+        data : {
+            webhook_secret: $secret
+        },     
         success: function(result){
             console.log(result);
         }});  
 });
+
+function randomString()
+{
+    var chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-=~!@#$%^&*()_+,./<>?;:[]{}|abcdefghijklmnopqrstuvwxyz";
+    var string_length = 20;
+    var randomstring = '';
+
+    for (var i = 0; i < string_length; i++)
+    {
+        var rnum = Math.floor(Math.random() * chars.length);
+        randomstring += chars.substring(rnum, rnum + 1);
+    }
+
+    return randomstring;
+}
 </script>
-
-
-
-
-

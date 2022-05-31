@@ -66,6 +66,7 @@ else
             db_query('UPDATE ?:payments SET processor_params=?s WHERE payment_id = ?i', serialize($processor_data['processor_params']), $paymentId);
         }
     }
+
     //checks for iframe mode. In iframe mode payment flow goes through another payment button
     if ((defined('IFRAME_MODE') === true) and (empty($_GET['clicked']) === true))
     {
@@ -185,9 +186,18 @@ function autoEnableWebhook($processor_data)
    $keyId = $processor_data['processor_params']['key_id'];
    $keySecret = $processor_data['processor_params']['key_secret'];
    $webhookUrl = $processor_data['processor_params']['webhook_url'];
-   $webhookSecret = $processor_data['processor_params']['webhook_secret'];
    $webhookExist = false;
    $enabled = true;
+   // If webhook_secret not set in db(for any reason), add it through the backend
+   if (empty($processor_data['processor_params']['webhook_secret']) === true)
+   {
+      $webhookSecret = generateSecret();
+      updateDbSecret($webhookSecret, $processor_data['processor_params']); 
+   }
+   else
+   {
+      $webhookSecret = $processor_data['processor_params']['webhook_secret'];
+   }
    
   
    $supportedWebhookEvents  = array(
@@ -248,5 +258,21 @@ function autoEnableWebhook($processor_data)
       }
   
 }
+
+function generateSecret(){
+    $alphanumericString = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-=~!@#$%^&*()_+,./<>?;:[]{}|abcdefghijklmnopqrstuvwxyz';
+    $secret = substr(str_shuffle($alphanumericString), 0, 20);
+ 
+    return $secret;
+ }
+ 
+ function updateDbSecret($webhookSecret, $processorParams){
+    $processorId = db_get_row('SELECT * FROM ?:payment_processors WHERE processor LIKE ?l OR processor LIKE ?l', 
+                               "razorpay", "Razorpay")['processor_id'];
+    
+    $processorParams['webhook_secret'] = $webhookSecret;
+ 
+    db_query('UPDATE ?:payments SET processor_params=?s WHERE processor_id = ?i', serialize($processorParams), $processorId);
+ }
 
 ?>
