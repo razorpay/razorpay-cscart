@@ -3,17 +3,34 @@ use Tygh\Registry;
 use Razorpay\Api\Api;
 require_once Registry::get('config.dir.payments') .'razorpay/razorpay-sdk/Razorpay.php';
 
-
 if ($_REQUEST['dispatch'] == 'razorpay.manage')
 {
-   if($_SERVER['REQUEST_METHOD'] === 'POST')
+   if ($_SERVER['REQUEST_METHOD'] === 'POST')
    {
       $keyId = $_REQUEST['keyid'];
       $keySecret = $_REQUEST['keysecret'];
       $webhookUrl = "http".(isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] === 'on' ? "s" : "") 
                      . "://$_SERVER[HTTP_HOST]"
                      ."/cscart/index.php?dispatch=payment_notification.rzp_webhook&payment=razorpay";
-      $webhookSecret = generateSecret();
+      
+      //If webhook_secret not set in db(for any reason), add it through the backend
+      $processorParams = fetchProcessorParams();
+      if (empty($processorParams) === false)
+      {
+         if (empty($processorParams['webhook_secret']) === false)
+         {
+            $webhookSecret = $processorParams['webhook_secret'];  
+         }
+         else
+         {
+            $webhookSecret = generateSecret();
+         }
+      }
+      else
+      {
+         $webhookSecret = generateSecret();
+      }
+
       $webhookExist = false;
       $enabled = true;
       
@@ -77,10 +94,13 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
          }
 
          // Update processor_params in database (to update webhook_secret)
-         $processorParams = fetchProcessorParams();
+         if (empty($processorParams) === true)
+         {
+            $processorParams = fetchProcessorParams();
+         }
          $processorParams['webhook_secret'] = $webhookSecret;
          updateDbProcessorParams($processorParams);
-         die();
+         exit;
       }
    
 }
@@ -101,7 +121,7 @@ function updateDbProcessorParams($processorParams){
 function fetchProcessorParams(){
    $processorId = db_get_row('SELECT * FROM ?:payment_processors WHERE processor LIKE ?l OR processor LIKE ?l', "razorpay", "Razorpay")['processor_id'];
    $processorParams = db_get_array('SELECT * FROM ?:payments');
-
+   
    $processorParamsRzp = "";
    foreach($processorParams as $key=>$row)
    {
@@ -112,4 +132,5 @@ function fetchProcessorParams(){
    }
    return $processorParamsRzp;
 }
+
 ?>
