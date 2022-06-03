@@ -6,12 +6,14 @@ require_once Registry::get('config.dir.payments') .'razorpay/razorpay-sdk/Razorp
 
 if ($_REQUEST['dispatch'] == 'razorpay.manage')
 {
-   if($_SERVER['REQUEST_METHOD'] === 'GET')
+   if($_SERVER['REQUEST_METHOD'] === 'POST')
    {
       $keyId = $_REQUEST['keyid'];
       $keySecret = $_REQUEST['keysecret'];
-      $webhookUrl =  $_REQUEST['webhook_url'];
-      $webhookSecret = $_REQUEST['secret'];
+      $webhookUrl = "http".(isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] === 'on' ? "s" : "") 
+                     . "://$_SERVER[HTTP_HOST]"
+                     ."/cscart/index.php?dispatch=payment_notification.rzp_webhook&payment=razorpay";
+      $webhookSecret = generateSecret();
       $webhookExist = false;
       $enabled = true;
       
@@ -20,7 +22,7 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
          'payment.authorized',
       );
       $defaultWebhookEvents = array(
-            'payment.authorized' => true
+         'payment.authorized' => true
       );
       $domain = parse_url($webhookUrl, PHP_URL_HOST);
       $domain_ip = gethostbyname($domain);
@@ -72,8 +74,41 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
          {
             $api->request->request('POST', "webhooks/", $data);
          }
+
+         // Update processor_params in database (to update webhook_secret)
+         $processorParams = fetchProcessorParams();
+         $processorParams['webhook_secret'] = $webhookSecret;
+         updateDbProcessorParams($processorParams);
          die();
       }
    
+}
+
+function generateSecret(){
+   $alphanumericString = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-=~!@#$%^&*()_+,./<>?;:[]{}|abcdefghijklmnopqrstuvwxyz';
+   $secret = substr(str_shuffle($alphanumericString), 0, 20);
+
+   return $secret;
+}
+
+function updateDbProcessorParams($processorParams){
+   $processorId = db_get_row('SELECT * FROM ?:payment_processors WHERE processor LIKE ?l OR processor LIKE ?l', "razorpay", "Razorpay")['processor_id'];
+
+   db_query('UPDATE ?:payments SET processor_params=?s WHERE processor_id = ?i', serialize($processorParams), $processorId);
+}
+
+function fetchProcessorParams(){
+   $processorId = db_get_row('SELECT * FROM ?:payment_processors WHERE processor LIKE ?l OR processor LIKE ?l', "razorpay", "Razorpay")['processor_id'];
+   $processorParams = db_get_array('SELECT * FROM ?:payments');
+
+   $processorParamsRzp = "";
+   foreach($processorParams as $key=>$row)
+   {
+       if ($row['processor_id'] === $processorId)
+       {
+           $processorParamsRzp = unserialize($row['processor_params']);
+       }
+   }
+   return $processorParamsRzp;
 }
 ?>

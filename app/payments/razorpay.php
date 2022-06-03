@@ -51,21 +51,16 @@ else
     
     if (empty($WebhookFlag) === true)
     {
-        autoEnableWebhook($processor_data);
-        $processor_data['processor_params']['webhook_flag'] = strval(time());
-
-        db_query('UPDATE ?:payments SET processor_params=?s WHERE payment_id = ?i', serialize($processor_data['processor_params']), $paymentId);
+        autoEnableWebhook($processor_data, $paymentId);
     }
     else
     {
         if ($WebhookFlag + 86400 < time())
         {
-            autoEnableWebhook($processor_data);
-            $processor_data['processor_params']['webhook_flag'] = strval(time());
-            
-            db_query('UPDATE ?:payments SET processor_params=?s WHERE payment_id = ?i', serialize($processor_data['processor_params']), $paymentId);
+            autoEnableWebhook($processor_data, $paymentId);
         }
     }
+
     //checks for iframe mode. In iframe mode payment flow goes through another payment button
     if ((defined('IFRAME_MODE') === true) and (empty($_GET['clicked']) === true))
     {
@@ -180,16 +175,28 @@ function getMerchantPreferences($api)
     return $preferences;
 }
 
-function autoEnableWebhook($processor_data)
+function autoEnableWebhook($processor_data, $paymentId)
 {
    $keyId = $processor_data['processor_params']['key_id'];
    $keySecret = $processor_data['processor_params']['key_secret'];
    $webhookUrl = $processor_data['processor_params']['webhook_url'];
-   $webhookSecret = $processor_data['processor_params']['webhook_secret'];
    $webhookExist = false;
    $enabled = true;
+   // update timestamp (webhook_flag)
+   $processor_data['processor_params']['webhook_flag'] = strval(time());
+   //If webhook_secret not set in db(for any reason), add it through the backend
+   if (empty($processor_data['processor_params']['webhook_secret']) === true)
+   {
+      $webhookSecret = generateSecret();
+      $processor_data['processor_params']['webhook_secret'] = $webhookSecret;
+   }
+   else
+   {
+      $webhookSecret = $processor_data['processor_params']['webhook_secret'];
+   }
    
-  
+   updateDbProcessorParams($processor_data, $paymentId); 
+
    $supportedWebhookEvents  = array(
       'payment.authorized'
   );
@@ -247,6 +254,17 @@ function autoEnableWebhook($processor_data)
          $api->request->request('POST', "webhooks/", $data);
       }
   
+}
+
+function generateSecret(){
+    $alphanumericString = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-=~!@#$%^&*()_+,./<>?;:[]{}|abcdefghijklmnopqrstuvwxyz';
+    $secret = substr(str_shuffle($alphanumericString), 0, 20);
+ 
+    return $secret;
+ }
+ 
+function updateDbProcessorParams($processorData, $paymentId){
+    db_query('UPDATE ?:payments SET processor_params=?s WHERE payment_id = ?i', serialize($processorData['processor_params']), $paymentId);
 }
 
 ?>
