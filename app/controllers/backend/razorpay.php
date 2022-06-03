@@ -19,10 +19,11 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
       
    
       $supportedWebhookEvents  = array(
-         'payment.authorized',
+         'payment.authorized'
       );
       $defaultWebhookEvents = array(
-         'payment.authorized' => true
+         'payment.authorized' => true,
+         'order.paid'         => true
       );
       $domain = parse_url($webhookUrl, PHP_URL_HOST);
       $domain_ip = gethostbyname($domain);

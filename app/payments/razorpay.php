@@ -194,15 +194,16 @@ function autoEnableWebhook($processor_data, $paymentId)
    {
       $webhookSecret = $processor_data['processor_params']['webhook_secret'];
    }
-   
+
    updateDbProcessorParams($processor_data, $paymentId); 
 
    $supportedWebhookEvents  = array(
-      'payment.authorized'
-  );
-  $defaultWebhookEvents = array(
-      'payment.authorized' => true
-  );
+         'payment.authorized'
+    );
+    $defaultWebhookEvents = array(
+        'payment.authorized' => true,
+        'order.paid'         => true
+    );
   $domain = parse_url($webhookUrl, PHP_URL_HOST);
   $domain_ip = gethostbyname($domain);
   
