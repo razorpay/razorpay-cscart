@@ -198,7 +198,8 @@ function autoEnableWebhook($processor_data, $paymentId)
    updateDbProcessorParams($processor_data, $paymentId); 
 
    $supportedWebhookEvents  = array(
-         'payment.authorized'
+         'payment.authorized',
+         'order.paid'
     );
     $defaultWebhookEvents = array(
         'payment.authorized' => true,

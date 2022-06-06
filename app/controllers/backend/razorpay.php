@@ -36,7 +36,8 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
       
    
       $supportedWebhookEvents  = array(
-         'payment.authorized'
+         'payment.authorized',
+         'order.paid'
       );
       $defaultWebhookEvents = array(
          'payment.authorized' => true,
