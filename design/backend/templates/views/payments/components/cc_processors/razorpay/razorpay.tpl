@@ -5,7 +5,6 @@
 {assign var="webhook_url" value="payment_notification.rzp_webhook?payment=razorpay"|fn_url:"C":"current"}
 
 {assign var="security_hash" value=""|fn_generate_security_hash}
-
 <div class="form-field">
     <label for="key_id">{__("rzp_key_id")}:</label>
     <input type="text" name="payment_data[processor_params][key_id]" id="key_id" value="{$processor_params.key_id}" class="input-text" />

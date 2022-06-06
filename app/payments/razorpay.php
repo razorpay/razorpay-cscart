@@ -181,7 +181,7 @@ function autoEnableWebhook($processor_data, $paymentId)
    $keySecret = $processor_data['processor_params']['key_secret'];
    $webhookUrl = $processor_data['processor_params']['webhook_url'];
    $webhookExist = false;
-   $enabled = true;
+   $enabled = 'on';
    // update timestamp (webhook_flag)
    $processor_data['processor_params']['webhook_flag'] = strval(time());
    //If webhook_secret not set in db(for any reason), add it through the backend

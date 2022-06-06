@@ -12,14 +12,14 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
       $webhookUrl = "http".(isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] === 'on'? "s": "") 
                      ."://$_SERVER[HTTP_HOST]"
                      ."/cscart/index.php?dispatch=payment_notification.rzp_webhook&payment=razorpay";
-      
+
       //If webhook_secret not set in db(for any reason), add it through the backend
-      $processorParams = fetchProcessorParams();
-      if (empty($processorParams) === false)
+      $processorParamsDb = fetchProcessorParams();
+      if (empty($processorParamsDb) === false)
       {
-         if (empty($processorParams['webhook_secret']) === false)
+         if (empty($processorParamsDb['webhook_secret']) === false)
          {
-            $webhookSecret = $processorParams['webhook_secret'];  
+            $webhookSecret = $processorParamsDb['webhook_secret'];  
          }
          else
          {
@@ -30,10 +30,19 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
       {
          $webhookSecret = generateSecret();
       }
-
       $webhookExist = false;
-      $enabled = true;
+      $enabled = 'on';
       
+      $processorParamsFormData = array (
+         'key_id' => $keyId,
+         'key_secret' => $keySecret,
+         'currency' => '',
+         'iframe_mode' => '',
+         'enabled_webhook' => $enabled,
+         'webhook_url' => $webhookUrl,
+         'webhook_secret' => $webhookSecret,
+         'webhook_flag' => time(),
+      );
    
       $supportedWebhookEvents  = array(
          'payment.authorized',
@@ -94,16 +103,45 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
             $api->request->request('POST', "webhooks/", $data);
          }
 
-         // Update processor_params in database (to update webhook_secret)
-         if (empty($processorParams) === true)
-         {
-            $processorParams = fetchProcessorParams();
-         }
-         $processorParams['webhook_secret'] = $webhookSecret;
-         updateDbProcessorParams($processorParams);
+         // Update processor_params in database 
+         $finalProcessorParams = compareProcessorParams($processorParamsFormData, $processorParamsDb);
+         updateDbProcessorParams($finalProcessorParams);
          exit;
       }
    
+}
+
+function compareProcessorParams($processorParamsForm, $processorParamsDb){
+   $updatedProcessorParams = array (
+      'key_id' => '',
+      'key_secret' => '',
+      'currency' => '',
+      'iframe_mode' => '',
+      'enabled_webhook' => '',
+      'webhook_url' => '',
+      'webhook_secret' => '',
+      'webhook_flag' => '',
+    );
+
+    // Update with db values first
+    foreach ($processorParamsDb as $key=>$value)
+    {
+       if (empty($value) === false)
+       {
+         $updatedProcessorParams[$key] = $value;
+       }
+    }
+
+   // Update with form data, to override db values
+    foreach ($processorParamsForm as $key=>$value)
+    {
+      if (empty($value) === false)
+       {
+         $updatedProcessorParams[$key] = $value;
+       }
+    }
+
+    return $updatedProcessorParams;
 }
 
 function generateSecret(){
