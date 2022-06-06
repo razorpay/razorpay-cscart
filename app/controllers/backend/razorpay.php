@@ -9,8 +9,8 @@ if ($_REQUEST['dispatch'] == 'razorpay.manage')
    {
       $keyId = $_REQUEST['keyid'];
       $keySecret = $_REQUEST['keysecret'];
-      $webhookUrl = "http".(isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] === 'on' ? "s" : "") 
-                     . "://$_SERVER[HTTP_HOST]"
+      $webhookUrl = "http".(isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] === 'on'? "s": "") 
+                     ."://$_SERVER[HTTP_HOST]"
                      ."/cscart/index.php?dispatch=payment_notification.rzp_webhook&payment=razorpay";
       
       //If webhook_secret not set in db(for any reason), add it through the backend
