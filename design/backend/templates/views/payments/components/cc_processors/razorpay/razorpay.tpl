@@ -35,7 +35,8 @@
 <div class="form-field" style="display:none;">
     <label for="enabled_webhook">{__("rzp_enabled_webhook")}:</label>
     <select name="payment_data[processor_params][enabled_webhook]" id="enabled_webhook">
-        <option value="on" selected="selected">on</option>
+        <option value="on">on</option>
+        <option value="off" selected="selected">off</option>
      </select>
      <div style="font-weight: bold; font-style: italic;">If set to Yes, please set the webhook secret below as well</div>
 </div>
