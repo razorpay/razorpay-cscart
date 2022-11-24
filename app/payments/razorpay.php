@@ -122,7 +122,8 @@ else
             '_' => array(
               'integration' => 'cscart',
               'integration_version' => RazorpayPayment::VERSION,
-              'integration_parent_version' => PRODUCT_VERSION
+              'integration_parent_version' => PRODUCT_VERSION,
+              'integration_type' => 'plugin'
             )
         );
 

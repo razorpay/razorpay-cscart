@@ -5,6 +5,11 @@
 {assign var="webhook_url" value="payment_notification.rzp_webhook?payment=razorpay"|fn_url:"C":"current"}
 
 {assign var="security_hash" value=""|fn_generate_security_hash}
+<div>
+    First <a href="https://easy.razorpay.com/onboarding?recommended_product=payment_gateway&source=cscart" target="_blank">signup</a> for a 
+    Razorpay account or <a href="https://dashboard.razorpay.com/signin?screen=sign_in&source=cscart" target="_blank">login</a> if you have an existing account.
+</div>
+
 <div class="form-field">
     <label for="key_id">{__("rzp_key_id")}:</label>
     <input type="text" name="payment_data[processor_params][key_id]" id="key_id" value="{$processor_params.key_id}" class="input-text" />
