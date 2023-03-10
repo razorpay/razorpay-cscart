@@ -1,6 +1,5 @@
 {* $Id$ *}
 
-{include file="views/payments/components/cc_processors/razorpay/razorpay_currency.tpl"}
 {assign var="currencies" value=""|fn_get_currencies}
 {assign var="webhook_url" value="payment_notification.rzp_webhook?payment=razorpay"|fn_url:"C":"current"}
 
@@ -23,8 +22,8 @@
 <div class="form-field">
     <label  for="currency">{__("currency")}:</label>
         <select name="payment_data[processor_params][currency]" id="currency">
-            {foreach from=$razorpay_currencies key="key" item="currency"}
-                <option value="{$key}" {if !isset($currencies.$key)} disabled="disabled"{/if} {if $processor_params.currency == $key} selected="selected"{/if}>{__({$currency})}{$currencies.$key}</option>
+            {foreach $currencies as $code => $currency}
+                <option value="{$code}" {if $processor_params.currency === $code}selected="selected"{/if}>{$currency.description}</option>
             {/foreach}
         </select>
 </div>
