@@ -10,7 +10,7 @@ setcookie(session_name(), session_id(), time()+$cookieLifetime);
 class RazorpayPayment
 {
     //Define version of plugin
-    const VERSION = '1.4.1';
+    const VERSION = '1.4.2';
 
     public function getSessionValue($key)
     {
