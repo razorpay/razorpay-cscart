@@ -24,7 +24,7 @@
     <label  for="currency">{__("currency")}:</label>
         <select name="payment_data[processor_params][currency]" id="currency">
             {foreach from=$razorpay_currencies key="key" item="currency"}
-                <option value="{$key}" {if !isset($currencies.$key)} disabled="disabled"{/if} {if $processor_params.currency == $key} selected="selected"{/if}>{__({$currency})}{$currencies.$key}</option>
+                <option value="{$key}" {if !isset($currencies.$key)} disabled="disabled"{/if} {if $processor_params.currency == $key} selected="selected"{/if}>{__({$currency})}</option>
             {/foreach}
         </select>
 </div>
