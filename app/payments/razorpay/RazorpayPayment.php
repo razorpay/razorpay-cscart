@@ -12,6 +12,12 @@ class RazorpayPayment
     //Define version of plugin
     const VERSION = '1.4.2';
 
+    const CURRENCY_NOT_ALLOWED = [
+        'KWD',
+        'OMR',
+        'BHD'
+    ];
+
     public function getSessionValue($key)
     {
         return $_SESSION[$key];

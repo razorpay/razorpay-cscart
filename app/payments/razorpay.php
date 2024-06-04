@@ -72,9 +72,7 @@ else
 
         $data = $razorpayPayment->getOrderData($order_id, $order_info, $processor_data);
 
-        if ($data['currency'] === "KWD" or
-            $data['currency'] === "OMR" or
-            $data['currency'] === "BHD")
+        if (in_array($data['currency'],  RazorpayPayment::CURRENCY_NOT_ALLOWED) === true)
         {
             echo $data['currency'] . " currency is not supported at the moment.";
         }
