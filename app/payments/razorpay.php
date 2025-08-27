@@ -71,7 +71,12 @@ else
         $url = fn_url("payment_notification.return?payment=razorpay", AREA, 'current');
 
         $data = $razorpayPayment->getOrderData($order_id, $order_info, $processor_data);
-        
+
+        if (in_array($data['currency'],  RazorpayPayment::CURRENCY_NOT_ALLOWED) === true)
+        {
+            echo $data['currency'] . " currency is not supported at the moment.";
+        }
+
         $keyId = $processor_data['processor_params']['key_id'];
 
         $keySecret = $processor_data['processor_params']['key_secret'];
